@@ -1,0 +1,128 @@
+;; Test test flags 
+;; normal tests (1/3 should fail)
+(+ 1 2)
+;=>4
+42
+;=>42
+"hello world"
+;=>"hello world"
+
+;; error test: input -> cout -> input (2/2 pass)
+(+ 1 "hello")
+;/.+
+(abc 1 2 3)
+;/.*\'?abc\'? not found.*
+
+;; input -> cout -> title (1/1 pass)
+(abc 1 2 3)
+;/.*\'?abc\'? not found.*
+;; next title  (no summary for this)
+
+;; multiple input test, some (not last) might throw errors  (3/3 pass)
+;;; Check that error aborts def!
+(def! w 123) 
+(def! w (abc)) ;error thrown
+w
+;=>123
+
+(def! gen-plus5 (fn* () (fn* (b) (+ 5 b))))
+(def! plus5 (gen-plus5))
+(plus5 7)
+;=>12
+(def! gen-plusX (fn* (x) (fn* (b) (+ x b))))
+(def! plus7 (gen-plusX 7))
+(plus7 8)
+;=>15
+
+;; multiple tests interrupted by a comment  (3/3 pass)
+"hello world"
+;=>"hello world"
+
+;;;interrupted by comment, there should be no block summary
+(+ 1 "hello")
+;/.+
+(abc 1 2 3)
+;/.*\'?abc\'? not found.*
+
+;; multiple input interrupted by a title  (1/1 pass)
+(def! sum2 (fn* (n acc) (if (= n 0) acc (sum2 (- n 1) (+ n acc)))))
+
+;; TODO: test let*, and do for TCO (no summary for this)
+
+(sum2 10 0)
+;=>55
+
+;; input -> cout -> output test  (15/15 pass)
+(do (prn 101))
+;/101
+;=>nil
+(do (prn 102) 7)
+;/102
+;=>7
+(do (prn 101) (prn 102) (+ 1 2))
+;/101
+;/102
+;=>3
+
+(println)
+;/
+;=>nil
+
+(println "")
+;/
+;=>nil
+
+(println "abc\ndef\nghi")
+;/abc
+;/def
+;/ghi
+;=>nil
+
+
+;; comment in input and/or test file  (1/1 pass)
+;;; Differing output, but make sure no fatal error
+(read-string ";; comment")
+
+(eval (read-string "(+ 2 3)"))
+;=>5
+
+;; THE FOLLOWING ARE CUSTOM TESTS FOR THE ACTUAL INTERPRETER
+;; init test
+(prn "hello world")
+;/"hello world"
+;=>nil
+
+;; hashmap tests
+(= {} {})
+;=>true
+
+(= {:a 1} {:a 1})
+;=>true
+
+(= {a 1} {a 1})
+;=>true
+
+(= {:a 1} {:a 2})
+;=>false
+
+(= {:a 1} {:b 1})
+;=>false
+
+(= {:a 1} {:a 1 :b 2})
+;=>false
+
+(= {:a 1 :b 2} {:a 1 :b 2})
+;=>true
+
+(= {:a 1 :b 2} {:b 2 :a 1})
+;=>true
+
+(= {:a 1 :b 2} {:a 1 :b 3})
+;=>false
+
+;; function tests, equality and use in hashmaps
+
+;; atom tests, equality and use in hashmaps
+
+
+;; END OF STEP CUSTOM TESTS
